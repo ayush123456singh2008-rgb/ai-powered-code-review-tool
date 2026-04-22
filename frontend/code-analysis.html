@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Analysis - AI-Powered Code Review Tool</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="dashboard.html">Dashboard</a></li>
+                <li><a href="repositories.html">Repositories</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section>
+            <h1>Code Analysis</h1>
+            <form id="run-code-analysis-form">
+                <label for="repository-id">Repository ID:</label>
+                <input type="number" id="repository-id" name="repository-id"><br><br>
+                <button type="submit">Run Code Analysis</button>
+            </form>
+            <div id="code-analysis-results"></div>
+        </section>
+    </main>
+    <script src="script.js"></script>
+    <script>
+        const runCodeAnalysisForm = document.getElementById('run-code-analysis-form');
+        runCodeAnalysisForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const repositoryId = document.getElementById('repository-id').value;
+            try {
+                const response = await fetch(`/api/v1/repositories/${repositoryId}/code-analysis`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    }
+                });
+                const data = await response.json();
+                if (data.repository_id) {
+                    window.location.href = 'code-analysis.html';
+                } else {
+                    console.error('Error running code analysis');
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        });
+        async function getCodeAnalysisResults() {
+            try {
+                const response = await fetch('/api/v1/repositories/code-analysis', {
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    }
+                });
+                const data = await response.json();
+                const codeAnalysisResults = document.getElementById('code-analysis-results');
+                codeAnalysisResults.innerHTML = '';
+                data.forEach(result => {
+                    const resultElement = document.createElement('div');
+                    resultElement.innerHTML = `
+                        <h2>Repository ID: ${result.repository_id}</h2>
+                        <p>File Name: ${result.file_name}</p>
+                        <p>Issues: ${result.issues}</p>
+                    `;
+                    codeAnalysisResults.appendChild(resultElement);
+                });
+            } catch (error) {
+                console.error(error);
+            }
+        }
+        getCodeAnalysisResults();
+    </script>
+</body>
+</html>
