@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Repositories - AI-Powered Code Review Tool</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="dashboard.html">Dashboard</a></li>
+                <li><a href="code-analysis.html">Code Analysis</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section>
+            <h1>Repositories</h1>
+            <form id="create-repository-form">
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name"><br><br>
+                <label for="url">URL:</label>
+                <input type="url" id="url" name="url"><br><br>
+                <button type="submit">Create Repository</button>
+            </form>
+            <div id="repositories-list"></div>
+        </section>
+    </main>
+    <script src="script.js"></script>
+    <script>
+        const createRepositoryForm = document.getElementById('create-repository-form');
+        createRepositoryForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const url = document.getElementById('url').value;
+            try {
+                const response = await fetch('/api/v1/repositories', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    },
+                    body: JSON.stringify({ name, url })
+                });
+                const data = await response.json();
+                if (data.id) {
+                    window.location.href = 'repositories.html';
+                } else {
+                    console.error('Error creating repository');
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        });
+        async function getRepositories() {
+            try {
+                const response = await fetch('/api/v1/repositories', {
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    }
+                });
+                const data = await response.json();
+                const repositoriesList = document.getElementById('repositories-list');
+                repositoriesList.innerHTML = '';
+                data.forEach(repository => {
+                    const repositoryElement = document.createElement('div');
+                    repositoryElement.innerHTML = `
+                        <h2>${repository.name}</h2>
+                        <p>URL: ${repository.url}</p>
+                    `;
+                    repositoriesList.appendChild(repositoryElement);
+                });
+            } catch (error) {
+                console.error(error);
+            }
+        }
+        getRepositories();
+    </script>
+</body>
+</html>
